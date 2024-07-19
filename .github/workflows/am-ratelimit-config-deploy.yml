@@ -1,0 +1,59 @@
+name: Set AM Ratelimit config
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select the environment to deploy"
+        required: true
+        default: "DES-INTRANET"
+        type: choice
+        options:
+          - DES-IAM
+          - DES-INTRANET
+
+env:
+  DESTINATION_PATH: "/path/to/destination" # Define the destination path here
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [DES-IAM, DES-INTRANET, PRE-IAM]
+    if: github.event.inputs.environment == matrix.environment
+    environment:
+      name: ${{ matrix.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Zip the content of the environment folder
+        run: |
+          cd amratelimit/${{ matrix.environment }}
+          zip -r ../../${{ matrix.environment }}.zip .
+        working-directory: amratelimit
+
+      - name: Transfer the zip file to the remote server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets['SSH_HOST_' + matrix.environment] }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ matrix.environment }}.zip $SSH_USER@${{ secrets['SSH_HOST_' + matrix.environment] }}:${{ env.DESTINATION_PATH }}
+        shell: bash
+
+      - name: Execute deployment script on the remote server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets['SSH_HOST_' + matrix.environment] }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $SSH_USER@${{ secrets['SSH_HOST_' + matrix.environment] }} 'bash -s' << 'EOF'
+            ${{ env.DESTINATION_PATH }}/deploy.sh ${{ env.DESTINATION_PATH }}/${{ matrix.environment }}.zip
+          EOF
+        shell: bash
