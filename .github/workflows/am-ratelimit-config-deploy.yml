@@ -37,8 +37,8 @@ jobs:
 
       - name: Zip the content of the environment folder
         run: |
-          cd amratelimit/${{ github.event.inputs.environment }}
-          zip -r ../../${{ env.ZIP_FILE_NAME }} .
+          cd ${{ env.PROJECT_PATH }}/amratelimit/${{ github.event.inputs.environment }}
+          zip -r ../../../${{ env.ZIP_FILE_NAME }} .
       - name: Setup SSH file
         run: |
           mkdir -p ~/.ssh
