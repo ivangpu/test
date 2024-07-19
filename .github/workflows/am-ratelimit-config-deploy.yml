@@ -14,6 +14,9 @@ on:
 
 env:
   DESTINATION_PATH: "/path/to/destination"
+  ZIP_FILE_NAME: amRatelimitConfig.zip
+  PROJECT_PATH: gitProject
+  SCRIPT_PATH: /path/remote/script.sh
 
 jobs:
   deployment:
@@ -21,8 +24,30 @@ jobs:
     environment: ${{ github.event.inputs.environment }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checking deployment environment variables
+        run: |
+          echo "Host: ${{ vars.SSH_HOST }}"
+          echo "Ssh User: ${{ vars.SSH_USER }}"
 
-      - name: Test enviroment
-        run: echo ${{ vars.SSH_HOST }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.PROJECT_PATH }}
+          lfs: true
+
+      - name: Zip the content of the environment folder
+        run: |
+          cd amratelimit/${{ github.event.inputs.environment }}
+          zip -r ../../${{ env.ZIP_FILE_NAME }} .
+      - name: Setup SSH file
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+      - name: Copy zip file to remote server
+        run: |
+          rsync -avz --dry-run ${{ env.ZIP_FILE_NAME }} ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ env.DESTINATION_PATH }}
+      - name: Execute deployment script on the remote server
+        run: |
+          ssh ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }} 'bash -s < ${{ env.SCRIPT_PATH }} ${{ env.DESTINATION_PATH }}/${{ env.ZIP_FILE_NAME }}'
