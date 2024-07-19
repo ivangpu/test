@@ -13,17 +13,12 @@ on:
           - DES-INTRANET
 
 env:
-  DESTINATION_PATH: "/path/to/destination" # Define the destination path here
+  DESTINATION_PATH: "/path/to/destination"
 
 jobs:
   deployment:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        environment: [DES-IAM, DES-INTRANET]
-    if: github.event.inputs.environment == matrix.environment
-    environment:
-      name: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.environment }}
 
     steps:
       - name: Checkout code
