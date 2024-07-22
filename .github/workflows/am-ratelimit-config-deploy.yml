@@ -20,7 +20,7 @@ env:
   AUTHORIZED_USERS: |
     prueba
     testivan
-    gpu
+    ivangpu
 
 jobs:
   check-authorization:
