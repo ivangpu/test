@@ -18,7 +18,7 @@ env:
   PROJECT_PATH: gitProject
   SCRIPT_PATH: /path/remote/script.sh
   AUTHORIZED_USERS: |
-    ivangpu
+    ivangputest
 
 jobs:
   check-authorization:
