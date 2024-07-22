@@ -18,7 +18,9 @@ env:
   PROJECT_PATH: gitProject
   SCRIPT_PATH: /path/remote/script.sh
   AUTHORIZED_USERS: |
-    ivangpu
+    prueba
+    testivan
+    gpu
 
 jobs:
   check-authorization:
