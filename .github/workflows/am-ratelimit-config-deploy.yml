@@ -18,7 +18,7 @@ env:
   PROJECT_PATH: gitProject
   SCRIPT_PATH: /path/remote/script.sh
   AUTHORIZED_USERS: |
-    ivangputest
+    ivangpu
 
 jobs:
   check-authorization:
@@ -66,7 +66,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
       - name: Copy zip file to remote server
         run: |
-          rsync -avz --dry-run ${{ env.ZIP_FILE_NAME }} ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ env.DESTINATION_PATH }}
+          rsync -avz --dry-run ${{ env.ZIP_FILE_NAME }} ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}:${{ env.DESTINATION_PATH }}
       - name: Execute deployment script on the remote server
         run: |
           ssh ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }} 'bash -s < ${{ env.SCRIPT_PATH }} ${{ env.DESTINATION_PATH }}/${{ env.ZIP_FILE_NAME }}'
