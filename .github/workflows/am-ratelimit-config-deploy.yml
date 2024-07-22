@@ -17,10 +17,29 @@ env:
   ZIP_FILE_NAME: amRatelimitConfig.zip
   PROJECT_PATH: gitProject
   SCRIPT_PATH: /path/remote/script.sh
+  AUTHORIZED_USERS: |
+    ivangpu
 
 jobs:
-  deployment:
+  check-authorization:
+    name: Check Authorization
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if user is authorized
+        run: |
+          current_user="${{ github.actor }}"
+          authorized_users="${{ env.AUTHORIZED_USERS }}"
+          if ! echo "$authorized_users" | grep -qw "$current_user"; then
+            echo "User $current_user is not authorized to run this workflow."
+            exit 1
+          fi
+        shell: bash
+
+  deployment:
+    name: Deploy config
+    runs-on: ubuntu-latest
+    needs: check-authorization
     environment: ${{ github.event.inputs.environment }}
 
     steps:
